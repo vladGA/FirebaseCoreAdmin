@@ -40,6 +40,17 @@ namespace FirebaseCoreAdmin.Firebase.Database
             _queryStore.Add(new KeyValuePair<string, string>(key, value));
         }
 
+        public void AddBool(string key, bool value)
+        {
+            var valueString = value ? "true" : "false";
+            Add(key, valueString);
+        }
+
+        public void AddString(string key, string value)
+        {
+            Add(key, $"\"{value}\"");
+        }
+
         public IList<KeyValuePair<string, string>> GetQueryStore()
         {
             return _queryStore;

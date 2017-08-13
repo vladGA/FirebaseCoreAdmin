@@ -7,7 +7,7 @@
     {
         public static IFirebaseAdminRef OrderBy(this IFirebaseAdminRef firebaseRef, string value)
         {
-            if(String.IsNullOrWhiteSpace(value))
+            if (String.IsNullOrWhiteSpace(value))
             {
                 throw new ArgumentNullException(nameof(value));
             }

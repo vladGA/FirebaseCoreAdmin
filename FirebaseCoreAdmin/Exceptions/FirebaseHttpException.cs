@@ -2,9 +2,14 @@
 {
     using System;
     using System.Net;
+    using System.Net.Http;
 
     public class FirebaseHttpException : Exception
     {
+        public HttpRequestMessage RequestMessage { get; private set; }
+        public HttpResponseMessage ResponseMessage { get; private set; }
+        public string ResponseContent { get; private set; }
+
         public FirebaseHttpException(string message)
             : base(message)
         {
@@ -17,9 +22,12 @@
             : base(innerException.Message, innerException)
         {
         }
-        public FirebaseHttpException(HttpStatusCode statusCode, string responseBody)
-            : base($"Request to firebase. Status code={statusCode}, Response={responseBody}")
+        public FirebaseHttpException(string responseBody,
+            HttpRequestMessage request, HttpResponseMessage response)
         {
+            ResponseContent = responseBody;
+            RequestMessage = request;
+            ResponseMessage = response;
         }
     }
 }

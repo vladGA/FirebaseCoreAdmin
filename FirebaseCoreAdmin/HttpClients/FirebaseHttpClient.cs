@@ -15,6 +15,7 @@
     using FirebaseCoreAdmin.Exceptions;
     using FirebaseCoreAdmin.Firebase;
     using System.Security.Cryptography;
+    using FirebaseCoreAdmin.Extensions;
 
     /// <summary>
     /// Creates Rest Api client for firebase rest http interactions
@@ -170,27 +171,23 @@
 
             var urlEncodedPayload = new FormUrlEncodedContent(permissionPayload);
 
-            try
+
+            HttpResponseMessage response = await PostAsync(_firebaseConfig.GoogleOAuthTokenPath, urlEncodedPayload);
+            await response.EnsureSuccessStatusCodeAsync();
+
+            if (response.Content == null)
             {
-                HttpResponseMessage response = await PostAsync(_firebaseConfig.GoogleOAuthTokenPath, urlEncodedPayload);
-                response.EnsureSuccessStatusCode();
-                if (response.Content == null)
-                {
-                    throw new FirebaseHttpException("Authentication failed, empty response content from firebase server");
-                }
-                var strinRepresentation = await response.Content.ReadAsStringAsync();
-                var serializationSettings = new JsonSerializerSettings() { ContractResolver = new FirebaseAccessTokenContractResolver() };
-                _accessToken = JsonConvert.DeserializeObject<FirebaseAccessToken>(strinRepresentation, serializationSettings);
-                if (_accessToken == null)
-                {
-                    throw new FirebaseHttpException("Authentication failed, unsupported content type was returned from firebase server");
-                }
-                return _accessToken;
+                throw new FirebaseHttpException("Authentication failed, empty response content from firebase server");
             }
-            catch (HttpRequestException ex)
+            var strinRepresentation = await response.Content.ReadAsStringAsync();
+            var serializationSettings = new JsonSerializerSettings() { ContractResolver = new FirebaseAccessTokenContractResolver() };
+            _accessToken = JsonConvert.DeserializeObject<FirebaseAccessToken>(strinRepresentation, serializationSettings);
+            if (_accessToken == null)
             {
-                throw new FirebaseHttpException(ex);
+                throw new FirebaseHttpException("Authentication failed, unsupported content type was returned from firebase server");
             }
+            return _accessToken;
+
         }
 
         public Uri GetAuthority()
@@ -284,23 +281,15 @@
 
         private async Task<string> SendAsyncCore(Func<HttpRequestMessage> requestMessage)
         {
-            try
-            {
-                var response = await SendAsyncWithReAuthentication(requestMessage);
-                response.EnsureSuccessStatusCode();
+            var response = await SendAsyncWithReAuthentication(requestMessage);
+            await response.EnsureSuccessStatusCodeAsync();
 
-                if (response.Content == null)
-                {
-                    return null;
-                }
-                var dataAsString = await response.Content.ReadAsStringAsync();
+            if (response.Content == null)
+                return null;
 
-                return dataAsString;
-            }
-            catch (HttpRequestException ex)
-            {
-                throw new FirebaseHttpException(ex);
-            }
+            var dataAsString = await response.Content.ReadAsStringAsync();
+
+            return dataAsString;
         }
 
         private async Task<HttpResponseMessage> SendAsyncWithReAuthentication(Func<HttpRequestMessage> requestMessage)
