@@ -31,8 +31,14 @@ Getting reference on some node of database use `firebaseClient.Database.Ref("end
 
 ### Query database
 Following reference query methods are available
+* StartAt
+* EndAt
+* EqualTo
+* LimitToFirst
 * LimitToLast
 * OrderBy
+
+Note: when using filters you should have index on that field, otherwise exception will throw saying specify index on the field.
 
 For getting data
 * Get
